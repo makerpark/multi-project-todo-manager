@@ -74,6 +74,19 @@ export default function ProjectTaskManager() {
   const [showCompletedTasks, setShowCompletedTasks] = useState({});
   const [showCompletedProjects, setShowCompletedProjects] = useState(false);
 
+  // 유니크 ID 생성 함수
+  const generateUniqueId = () => {
+    const allIds = [];
+    projects.forEach(project => {
+      allIds.push(project.id);
+      project.tasks.forEach(task => {
+        allIds.push(task.id);
+      });
+    });
+    const maxId = allIds.length > 0 ? Math.max(...allIds) : 0;
+    return maxId + 1;
+  };
+
   // 프로젝트 변경 시 로컬 스토리지에 저장
   useEffect(() => {
     try {
@@ -105,7 +118,7 @@ export default function ProjectTaskManager() {
   const addProject = () => {
     if (newProjectName.trim()) {
       const newProject = {
-        id: Date.now(),
+        id: generateUniqueId(),
         name: newProjectName,
         color: colors[projects.length % colors.length],
         startDate: '',
@@ -188,7 +201,7 @@ export default function ProjectTaskManager() {
       setProjects(projects.map(project => {
         if (project.id === projectId) {
           const newTask = {
-            id: Date.now(),
+            id: generateUniqueId(),
             text: taskText,
             completed: false,
             dueDate: ''
