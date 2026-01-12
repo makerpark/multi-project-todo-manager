@@ -7,58 +7,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Check, Plus, Trash2, FolderOpen, Edit2, ChevronUp, ChevronDown, Calendar, ChevronRight, Settings } from 'lucide-react';
+import { loadProjects, loadSettings, isOverdue, formatDate, sortProjects, sortTasks } from './utils.js';
 
 export default function ProjectTaskManager() {
-  // 로컬 스토리지에서 데이터 불러오기
-  const loadProjects = () => {
-    try {
-      const saved = localStorage.getItem('projectTaskManager');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('데이터 로드 실패:', error);
-    }
-    // 기본 데이터
-    return [
-      {
-        id: 1,
-        name: '프로젝트 A',
-        color: 'bg-blue-500',
-        startDate: '',
-        endDate: '',
-        completed: false,
-        tasks: [
-          { id: 1, text: '회의 자료 준비', completed: false, dueDate: '' },
-          { id: 2, text: '클라이언트 피드백 반영', completed: false, dueDate: '' }
-        ]
-      },
-      {
-        id: 2,
-        name: '프로젝트 B',
-        color: 'bg-purple-500',
-        startDate: '',
-        endDate: '',
-        completed: false,
-        tasks: [
-          { id: 3, text: '디자인 시안 검토', completed: false, dueDate: '' },
-          { id: 4, text: '개발 일정 조율', completed: false, dueDate: '' }
-        ]
-      }
-    ];
-  };
-
-  const loadSettings = () => {
-    try {
-      const saved = localStorage.getItem('projectTaskSettings');
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch (error) {
-      console.error('설정 로드 실패:', error);
-    }
-    return { fontSize: 'medium' };
-  };
 
   const [projects, setProjects] = useState(loadProjects);
   const [settings, setSettings] = useState(loadSettings);
@@ -113,15 +64,7 @@ export default function ProjectTaskManager() {
         completed: false,
         tasks: []
       };
-      const updatedProjects = [...projects, newProject].sort((a, b) => {
-        if (a.completed && !b.completed) return 1;
-        if (!a.completed && b.completed) return -1;
-        if (a.completed && b.completed) return 0;
-        if (!a.endDate && !b.endDate) return 0;
-        if (!a.endDate) return 1;
-        if (!b.endDate) return -1;
-        return new Date(a.endDate) - new Date(b.endDate);
-      });
+      const updatedProjects = sortProjects([...projects, newProject]);
       setProjects(updatedProjects);
       setNewProjectName('');
       setShowAddProject(false);
@@ -136,17 +79,11 @@ export default function ProjectTaskManager() {
   };
 
   const updateProjectDates = (projectId, startDate, endDate) => {
-    const updatedProjects = projects.map(p => 
-      p.id === projectId ? { ...p, startDate, endDate } : p
-    ).sort((a, b) => {
-      if (a.completed && !b.completed) return 1;
-      if (!a.completed && b.completed) return -1;
-      if (a.completed && b.completed) return 0;
-      if (!a.endDate && !b.endDate) return 0;
-      if (!a.endDate) return 1;
-      if (!b.endDate) return -1;
-      return new Date(a.endDate) - new Date(b.endDate);
-    });
+    const updatedProjects = sortProjects(
+      projects.map(p =>
+        p.id === projectId ? { ...p, startDate, endDate } : p
+      )
+    );
     setProjects(updatedProjects);
     setEditingDates({ ...editingDates, [projectId]: false });
   };
@@ -164,17 +101,11 @@ export default function ProjectTaskManager() {
   };
 
   const toggleProjectComplete = (projectId) => {
-    const updatedProjects = projects.map(p => 
-      p.id === projectId ? { ...p, completed: !p.completed } : p
-    ).sort((a, b) => {
-      if (a.completed && !b.completed) return 1;
-      if (!a.completed && b.completed) return -1;
-      if (a.completed && b.completed) return 0;
-      if (!a.endDate && !b.endDate) return 0;
-      if (!a.endDate) return 1;
-      if (!b.endDate) return -1;
-      return new Date(a.endDate) - new Date(b.endDate);
-    });
+    const updatedProjects = sortProjects(
+      projects.map(p =>
+        p.id === projectId ? { ...p, completed: !p.completed } : p
+      )
+    );
     setProjects(updatedProjects);
   };
 
@@ -193,13 +124,7 @@ export default function ProjectTaskManager() {
             completed: false,
             dueDate: ''
           };
-          // 날짜순으로 정렬 (날짜 없는 것은 맨 뒤로)
-          const updatedTasks = [...project.tasks, newTask].sort((a, b) => {
-            if (!a.dueDate && !b.dueDate) return 0;
-            if (!a.dueDate) return 1;
-            if (!b.dueDate) return -1;
-            return new Date(a.dueDate) - new Date(b.dueDate);
-          });
+          const updatedTasks = sortTasks([...project.tasks, newTask]);
           return {
             ...project,
             tasks: updatedTasks
@@ -214,34 +139,16 @@ export default function ProjectTaskManager() {
   const updateTaskDate = (projectId, taskId, newDate) => {
     setProjects(projects.map(project => {
       if (project.id === projectId) {
-        const updatedTasks = project.tasks.map(task =>
-          task.id === taskId ? { ...task, dueDate: newDate } : task
-        ).sort((a, b) => {
-          if (!a.dueDate && !b.dueDate) return 0;
-          if (!a.dueDate) return 1;
-          if (!b.dueDate) return -1;
-          return new Date(a.dueDate) - new Date(b.dueDate);
-        });
+        const updatedTasks = sortTasks(
+          project.tasks.map(task =>
+            task.id === taskId ? { ...task, dueDate: newDate } : task
+          )
+        );
         return { ...project, tasks: updatedTasks };
       }
       return project;
     }));
     setEditingTaskDate({ ...editingTaskDate, [taskId]: false });
-  };
-
-  const isOverdue = (dueDate) => {
-    if (!dueDate) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0);
-    return due < today;
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   };
 
   const toggleTask = (projectId, taskId) => {
