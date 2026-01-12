@@ -6,8 +6,8 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Check, Plus, Trash2, FolderOpen, Edit2, ChevronUp, ChevronDown, Calendar, ChevronRight, Settings } from 'lucide-react';
-import { loadProjects, loadSettings, isOverdue, formatDate, sortProjects, sortTasks } from './utils.js';
+import { Check, Plus, Trash2, FolderOpen, Edit2, ChevronUp, ChevronDown, Calendar, ChevronRight, Settings, AlertCircle } from 'lucide-react';
+import { loadProjects, loadSettings, isOverdue, formatDate, sortProjects, sortTasks, getTodayTasks } from './utils.js';
 
 export default function ProjectTaskManager() {
 
@@ -188,6 +188,7 @@ export default function ProjectTaskManager() {
   const stats = getTodayStats();
   const activeProjects = projects.filter(p => !p.completed);
   const completedProjects = projects.filter(p => p.completed);
+  const todayTasks = getTodayTasks(projects);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
@@ -195,19 +196,24 @@ export default function ProjectTaskManager() {
         {/* 헤더 */}
         <div className="mb-4 flex items-start justify-between">
           <div>
-            <h1 className={`${currentSize.heading} font-bold text-slate-800 mb-0.5`}>오늘의 할 일</h1>
+            <h1 className={`${currentSize.heading} font-bold text-slate-800 mb-0.5`}>프로젝트 관리</h1>
             <p className={`${currentSize.subtext} text-slate-600`}>
               {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
             </p>
             <div className="mt-2 flex items-center gap-2">
               <div className={`bg-white rounded-lg px-2.5 py-1 shadow-sm ${currentSize.subtext}`}>
-                <span className="text-slate-600">진행률: </span>
+                <span className="text-slate-600">전체 진행률: </span>
                 <span className="font-bold text-slate-800">{stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%</span>
                 <span className="text-slate-600 ml-1">({stats.completed}/{stats.total})</span>
               </div>
+              {todayTasks.length > 0 && (
+                <div className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-lg px-2.5 py-1 shadow-sm">
+                  <span className="font-bold">오늘 마감 {todayTasks.length}개</span>
+                </div>
+              )}
             </div>
           </div>
-          
+
           {/* 설정 버튼 */}
           <button
             onClick={() => setShowSettings(!showSettings)}
@@ -246,6 +252,55 @@ export default function ProjectTaskManager() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* 오늘의 할 일 섹션 */}
+        {todayTasks.length > 0 && (
+          <div className="mb-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl shadow-lg p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle className="text-white" size={20} />
+              <h2 className={`${currentSize.heading} font-bold text-white`}>
+                오늘 마감 ({todayTasks.length}개)
+              </h2>
+            </div>
+            <div className="space-y-2">
+              {todayTasks.map((task) => (
+                <div
+                  key={`today-${task.projectId}-${task.id}`}
+                  className="bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-sm hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start gap-2">
+                    <button
+                      onClick={() => toggleTaskCompletion(task.projectId, task.id)}
+                      className={`mt-0.5 flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all ${
+                        task.completed
+                          ? 'bg-emerald-500 border-emerald-500'
+                          : 'border-slate-300 hover:border-slate-400'
+                      }`}
+                    >
+                      {task.completed && <Check size={12} className="text-white" />}
+                    </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`${task.projectColor} text-white px-2 py-0.5 rounded text-xs font-medium`}>
+                          {task.projectName}
+                        </span>
+                        <span className={`${currentSize.text} text-slate-800 ${task.completed ? 'line-through text-slate-400' : ''}`}>
+                          {task.text}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Calendar size={12} className="text-red-500" />
+                        <span className={`${currentSize.subtext} text-red-600 font-medium`}>
+                          오늘 마감
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

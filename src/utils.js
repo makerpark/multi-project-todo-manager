@@ -184,3 +184,42 @@ export const getTodayString = () => {
   const today = new Date();
   return today.toISOString().split('T')[0];
 };
+
+/**
+ * 날짜가 오늘인지 확인합니다
+ * @param {string} dateString - 날짜 문자열
+ * @returns {boolean} 오늘이면 true
+ */
+export const isToday = (dateString) => {
+  if (!dateString) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const date = new Date(dateString);
+  date.setHours(0, 0, 0, 0);
+  return date.getTime() === today.getTime();
+};
+
+/**
+ * 프로젝트 목록에서 오늘 마감인 할 일들을 추출합니다
+ * @param {Array} projects - 프로젝트 배열
+ * @returns {Array} 오늘 마감인 할 일 배열 (프로젝트 정보 포함)
+ */
+export const getTodayTasks = (projects) => {
+  const todayTasks = [];
+  const activeProjects = projects.filter(p => !p.completed);
+
+  activeProjects.forEach(project => {
+    project.tasks.forEach(task => {
+      if (!task.completed && isToday(task.dueDate)) {
+        todayTasks.push({
+          ...task,
+          projectId: project.id,
+          projectName: project.name,
+          projectColor: project.color
+        });
+      }
+    });
+  });
+
+  return todayTasks;
+};
