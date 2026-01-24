@@ -4,7 +4,7 @@ import DayCell from './DayCell';
 import { getWeekDays, formatDate } from '../utils/dateUtils';
 import { useScheduler } from '../contexts/SchedulerContext';
 import { addWeeks, format } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { ko } from 'date-fns/locale/ko';
 
 const WeekView = () => {
   const { currentDate, setCurrentDate, getTasksForDate } = useScheduler();

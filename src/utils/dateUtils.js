@@ -12,7 +12,7 @@ import {
   isSameDay,
   parseISO
 } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { ko } from 'date-fns/locale/ko';
 
 /**
  * 날짜를 YYYY-MM-DD 형식으로 포맷

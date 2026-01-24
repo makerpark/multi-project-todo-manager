@@ -4,7 +4,7 @@ import DayCell from './DayCell';
 import { getMonthDays, formatDate } from '../utils/dateUtils';
 import { useScheduler } from '../contexts/SchedulerContext';
 import { addMonths, format, isSameMonth } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { ko } from 'date-fns/locale/ko';
 
 const MonthView = () => {
   const { currentDate, setCurrentDate, getTasksForDate } = useScheduler();
