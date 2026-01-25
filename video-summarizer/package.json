@@ -1,0 +1,33 @@
+{
+  "name": "video-summarizer",
+  "version": "1.0.0",
+  "description": "영상 링크에서 음성을 추출하고 텍스트로 변환 후 요약하는 앱",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js",
+    "client": "npx vite client --port 3000",
+    "install:deps": "npm install && echo '추가로 시스템에 yt-dlp와 ffmpeg를 설치해주세요'"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "openai": "^4.20.1",
+    "multer": "^1.4.5-lts.1",
+    "uuid": "^9.0.1",
+    "fluent-ffmpeg": "^2.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "video",
+    "transcription",
+    "summary",
+    "whisper",
+    "ai"
+  ],
+  "author": "",
+  "license": "MIT"
+}
